@@ -35,16 +35,16 @@ st.markdown("""
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
 
     :root {
-        --bg-overall: #fdfbff;
-        --glass-bg: rgba(255, 255, 255, 0.6);
-        --glass-border: rgba(196, 181, 253, 0.3);
-        --text-main: #1e1b4b;
-        --text-muted: #6366f1;
-        --accent: #8b5cf6;
-        --accent-glow: rgba(196, 181, 253, 0.4);
-        --success: #10b981;
+        --bg-overall: #f1f0fb;
+        --glass-bg: rgba(255, 255, 255, 0.95);
+        --glass-border: rgba(167, 139, 250, 0.4);
+        --text-main: #020617;
+        --text-muted: #4338ca;
+        --accent: #6d28d9;
+        --accent-glow: rgba(167, 139, 250, 0.3);
+        --success: #059669;
         --hero-gradient: linear-gradient(135deg, #ddd6fe 0%, #c4b5fd 100%);
-        --card-shadow: 0 10px 30px -10px rgba(167, 139, 250, 0.15);
+        --card-shadow: 0 10px 40px -10px rgba(167, 139, 250, 0.2);
     }
 
     @media (prefers-color-scheme: dark) {

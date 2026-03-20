@@ -1,5 +1,6 @@
-# 🎙️ MeetingIQ — AI Meeting Intelligence System
+# 🎙️ MeetingIQ —An AI-powered meeting intelligence system that turns raw transcripts into professional, actionable reports.
 
+🚀 **Live Demo**: [meetingiq.streamlit.app](https://meetingiq-afgqc4x7yvtnswncjsvqlu.streamlit.app/)
 > Transform raw meeting transcripts into structured, actionable intelligence — powered by GPT-4o.
 
 [![Python](https://img.shields.io/badge/Python-3.10+-blue?logo=python)](https://www.python.org/)
