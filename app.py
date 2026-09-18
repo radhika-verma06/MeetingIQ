@@ -69,7 +69,7 @@ st.markdown("""
     /* Layout & Background */
     .stApp {
         background-color: var(--bg-overall);
-        background-image: 
+        background-image:
             radial-gradient(at 0% 0%, var(--accent-glow) 0px, transparent 50%),
             radial-gradient(at 100% 100%, var(--accent-glow) 0px, transparent 50%);
         color: var(--text-main);
@@ -268,9 +268,9 @@ with st.sidebar:
     st.markdown("### 📋 Analysis Options")
 
     demo_mode = st.toggle(
-        "✨ Demo Mode", 
-        value=False, 
-        help="Explore MeetingIQ without an OpenAI API key using high-quality mock data."
+        "✨ Demo Mode",
+        value=True,
+        help="Explore MeetingIQ instantly without an OpenAI API key using sample transcript + mock analysis."
     )
 
     do_summary = st.toggle("Meeting Summary", value=True)
@@ -297,11 +297,32 @@ st.markdown("""
         <div style="font-size:2.8rem;">🎙️</div>
         <div>
             <div class="hero-title">MeetingIQ</div>
-            <div class="hero-subtitle">Turn any meeting transcript into actionable intelligence — instantly.</div>
+            <div class="hero-subtitle">Private meeting intelligence for conversations you would not upload to a black-box summarizer.</div>
         </div>
     </div>
 </div>
 """, unsafe_allow_html=True)
+
+
+st.markdown("""
+<div class="glass-card">
+    <h3 style="margin-top:0; color:var(--text-main);">Try instantly with Demo Mode — no API key required.</h3>
+    <p style="color:var(--text-muted); line-height:1.7; margin-bottom:0;">
+        MeetingIQ turns transcripts or recordings into summaries, action items, owners, deadlines, decisions, sentiment, topics, charts, and exportable reports.
+        Use Demo Mode for a fast preview, OpenAI with your own key for cloud analysis, or Ollama for local transcript analysis.
+    </p>
+</div>
+""", unsafe_allow_html=True)
+
+
+SAMPLE_TRANSCRIPT = """Sarah: Good morning everyone. Let’s start the Q3 product strategy review.
+John: Feature X is on track for a mid-August release. The backend is 90% complete, but we need final engineering estimates.
+Lisa: I have initial design mockups ready and can share them by Friday. I want to confirm the scope before handoff.
+Sarah: Decision made — Feature X stays the main Q3 priority, and Project Y moves into design this week.
+John: I’m worried about technical debt slowing us down.
+Sarah: Good point. Let’s schedule a separate Q4 technical debt sprint so we protect the current release timeline.
+Lisa: I’ll sync with frontend tomorrow and make sure the mockups match the new estimates.
+Sarah: Great. John, send final estimates by Wednesday. Lisa, share mockups by Friday. I’ll schedule the stakeholder follow-up for next Monday."""
 
 
 # ─────────────────────────────────────────────
@@ -321,19 +342,19 @@ with input_col:
     transcript_text = ""
 
     if input_method == "Paste Text":
+        if "sample_transcript_loaded" not in st.session_state:
+            st.session_state["sample_transcript_loaded"] = False
+
+        if st.button("✨ Load sample transcript", use_container_width=True):
+            st.session_state["sample_transcript_loaded"] = True
+
+        default_transcript = SAMPLE_TRANSCRIPT if st.session_state["sample_transcript_loaded"] else ""
+
         transcript_text = st.text_area(
             "Paste meeting transcript here",
+            value=default_transcript,
             height=220,
-            placeholder=(
-                "Example:\n\n"
-                "Sarah: Good morning everyone. Let's start the Q3 planning review.\n"
-                "John: Thanks Sarah. We need to finalize the product roadmap by Friday.\n"
-                "Lisa: Agreed. I'll handle the design mockups. Can we get engineering estimates?\n"
-                "John: I'll coordinate with the backend team and send estimates by Wednesday.\n"
-                "Sarah: Perfect. Decision made — we ship feature X in Q3, feature Y moves to Q4.\n"
-                "Lisa: I'm concerned about the timeline. We might be overcommitting.\n"
-                "John: Good point. Let's add a buffer week. I'll update the roadmap.\n"
-            ),
+            placeholder="Paste your meeting transcript here, or click Load sample transcript to test instantly.",
             label_visibility="collapsed",
         )
     elif input_method == "Upload Text File":
@@ -359,6 +380,7 @@ with input_col:
 
     st.markdown("")
     analyze_btn = st.button("🔍 Analyze Meeting", use_container_width=True)
+    st.caption("Privacy note: Demo Mode uses built-in mock data. OpenAI mode sends content to OpenAI. Ollama mode sends transcript analysis to your local Ollama server.")
 
 
 # ─────────────────────────────────────────────
@@ -391,13 +413,13 @@ if analyze_btn:
                 with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(st.session_state["audio_file"].name)[1]) as tmp:
                     tmp.write(st.session_state["audio_file"].getvalue())
                     tmp_path = tmp.name
-                
+
                 try:
                     transcript_text = transcribe_audio(tmp_path, api_key)
                 finally:
                     if os.path.exists(tmp_path):
                         os.remove(tmp_path)
-            
+
             st.success("✅ Transcription complete!")
             st.session_state["transcript"] = transcript_text
 
@@ -638,16 +660,27 @@ if "results" in st.session_state:
 
     with exp1:
         # Build markdown export
+        action_lines = []
+        for item in results.get('action_items', []):
+            if isinstance(item, dict):
+                task = item.get('task', '')
+                owner = item.get('owner', '')
+                deadline = item.get('deadline', '')
+                meta = ', '.join(part for part in [f"Owner: {owner}" if owner else '', f"Deadline: {deadline}" if deadline else ''] if part)
+                action_lines.append(f"- {task}" + (f" ({meta})" if meta else ''))
+            else:
+                action_lines.append(f"- {item}")
+
         md_report = f"""# Meeting Intelligence Report
 
 ## Summary
 {results.get('summary', 'N/A')}
 
 ## Action Items
-{chr(10).join(f"- {item}" for item in results.get('action_items', []))}
+{chr(10).join(action_lines) if action_lines else '- None'}
 
 ## Key Decisions
-{chr(10).join(f"- {d}" for d in results.get('decisions', []))}
+{chr(10).join(f"- {d}" for d in results.get('decisions', [])) or '- None'}
 
 ## Sentiment
 Overall: {results.get('sentiment', {}).get('overall', 'N/A')}
